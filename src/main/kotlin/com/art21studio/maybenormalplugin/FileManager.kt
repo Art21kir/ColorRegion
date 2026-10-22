@@ -10,12 +10,21 @@ import com.intellij.openapi.vfs.readText
 import org.yaml.snakeyaml.Yaml
 import java.awt.Color
 
+/*
+Класс FileManager описывает логику работы с YAML файлами в директории /.ColorRegion
+Конструктор класса состоит из одного параметра:
+- project (Project) объект активного проекта в IDE
+ */
 @Service(Service.Level.PROJECT)
 class FileManager (project: Project): Disposable {
     private val yamlMap: MutableMap<String, String> = mutableMapOf()
-    public val files: MutableList<String> = mutableListOf()
+    val files: MutableList<String> = mutableListOf()
     private val colorRegionDirectory: VirtualFile = project.baseDir.findDirectory(".colorRegion")!!
-
+    /*
+    Метод init реализует чтение записей о цветных регионах для каждого файла, записи о котором нашлись в /.ColorRegion
+    Метод ничего не принимает в качестве аргументов
+    Метод возвращает MutableList<MutableList<ColorRegion>> - списки цветных регионов для каждого найденного файла
+     */
     fun init() : MutableList<MutableList<ColorRegion>> {
         val regions: MutableList<MutableList<ColorRegion>> = mutableListOf()
         val mapFile: VirtualFile = colorRegionDirectory.findFileByRelativePath("map.yml") ?: return regions
@@ -30,9 +39,7 @@ class FileManager (project: Project): Disposable {
                     if (fileValue is Map<*, *>)
                         try {
                             Logger.getInstance("ColorRegion").info(fileValue.toString())
-                            Logger.getInstance("ColorRegion").info(fileValue["color"].toString())
                             fileRegions.add(ColorRegion(fileValue["start"] as Int, fileValue["finish"] as Int, Color.decode(fileValue["color"] as String)))
-                            Logger.getInstance("ColorRegion").info(fileRegions.toString())
                         }
                         catch (e: Exception){
                             Logger.getInstance("ColorRegion").info(e.toString())
@@ -45,14 +52,11 @@ class FileManager (project: Project): Disposable {
         Logger.getInstance("ColorRegion").info(regions.toString())
         return regions
     }
-//    fun write(regions: MutableList<MutableList<ColorRegion>>){
-//        val out: Map<String, Map<String, Any>>
-//    }
-//    fun addFile(filePath: String){
-//        val ind: Int = yamlMap.size
-//        yamlMap[filePath] = ind.toString()
-//        colorRegionDirectory.(ind.toString() + "yml")
-//    }
+/*
+Метод dispose реализует логику уничтожения объекта класса
+Метод ничего не принимает в качестве аргументов
+Метод ничего не возвращает
+ */
     override fun dispose() {
         yamlMap.clear()
     }
